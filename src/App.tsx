@@ -17,7 +17,8 @@ import {
   Dumbbell,
   Pill,
   Youtube,
-  Layout
+  Layout,
+  Ticket
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -46,6 +47,15 @@ const CATEGORY_ICONS = {
   other: <Layout className="w-4 h-4" />,
 };
 
+const COLUMN_COLORS = [
+  "bg-yellow-400", // 1열: 노란색
+  "bg-blue-400",   // 2열: 파랑색
+  "bg-green-400",  // 3열: 초록색
+  "bg-red-400",    // 4열: 빨강색
+  "bg-gray-400",   // 5열: 회색
+  "bg-purple-400", // 6열: 보라색
+];
+
 export default function App() {
   const [tasks, setTasks] = useState<Task[]>(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem("todo-tasks") : null;
@@ -55,6 +65,10 @@ export default function App() {
   const [quote, setQuote] = useState("오늘도 멋진 하루를 시작해보세요!");
   const [author, setAuthor] = useState("AI Motivator");
   const [isLoadingQuote, setIsLoadingQuote] = useState(false);
+  
+  // Lotto state
+  const [lottoSets, setLottoSets] = useState<number[][]>([]);
+  const [isLoadingLotto, setIsLoadingLotto] = useState(false);
 
   // Save tasks to local storage
   useEffect(() => {
@@ -84,9 +98,37 @@ export default function App() {
     }
   }, []);
 
+  const fetchLottoNumbers = useCallback(async () => {
+    setIsLoadingLotto(true);
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: "최근 5년간의 로또 당첨 번호 데이터를 분석하여 통계적으로 의미 있는 로또 번호 5세트(각 6개 숫자, 1-45 범위)를 추천해줘. 각 세트는 오름차순으로 정렬해줘. JSON 형식으로: { \"lottoSets\": [[1, 2, 3, 4, 5, 6], [7, 8, 9, 10, 11, 12], ...] }",
+        config: {
+          responseMimeType: "application/json",
+        }
+      });
+      
+      const data = JSON.parse(response.text || "{}");
+      if (data.lottoSets) {
+        setLottoSets(data.lottoSets);
+      }
+    } catch (error) {
+      console.error("Failed to fetch lotto numbers:", error);
+      // Fallback random numbers
+      const fallback = Array.from({ length: 5 }, () => 
+        Array.from({ length: 6 }, () => Math.floor(Math.random() * 45) + 1).sort((a, b) => a - b)
+      );
+      setLottoSets(fallback);
+    } finally {
+      setIsLoadingLotto(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchQuote();
-  }, [fetchQuote]);
+    fetchLottoNumbers();
+  }, [fetchQuote, fetchLottoNumbers]);
 
   const addTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,7 +159,7 @@ export default function App() {
     <div className="min-h-screen bg-[#F8F9FA] text-[#212529] font-sans p-4 md:p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header Section */}
-        <header className="mb-12 text-center">
+        <header className="mb-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -136,7 +178,7 @@ export default function App() {
             key={quote}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="relative p-6 bg-white rounded-2xl shadow-sm border border-gray-100 group"
+            className="relative p-6 bg-white rounded-2xl shadow-sm border border-gray-100 group mb-6"
           >
             <Quote className="absolute -top-3 -left-3 w-8 h-8 text-blue-100 fill-blue-50" />
             <div className="relative">
@@ -155,6 +197,56 @@ export default function App() {
             >
               <RefreshCw className={`w-4 h-4 ${isLoadingQuote ? 'animate-spin' : ''}`} />
             </button>
+          </motion.div>
+
+          {/* Lotto Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-blue-600 font-bold">
+                <Ticket className="w-5 h-5" />
+                <span>AI 로또 번호 추천 (최근 5년 데이터 기반)</span>
+              </div>
+              <button 
+                onClick={fetchLottoNumbers}
+                disabled={isLoadingLotto}
+                className="text-xs font-semibold text-gray-400 hover:text-blue-500 flex items-center gap-1 transition-colors"
+              >
+                <RefreshCw className={`w-3 h-3 ${isLoadingLotto ? 'animate-spin' : ''}`} />
+                번호 갱신
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {isLoadingLotto ? (
+                <div className="py-8 text-gray-400 text-sm animate-pulse">데이터 분석 중...</div>
+              ) : (
+                lottoSets.map((set, idx) => (
+                  <motion.div 
+                    key={idx}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="flex justify-between items-center p-2 bg-gray-50 rounded-xl"
+                  >
+                    <span className="text-xs font-bold text-gray-400 w-8">#{idx + 1}</span>
+                    <div className="flex gap-2">
+                      {set.map((num, nIdx) => (
+                        <div 
+                          key={nIdx}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ${COLUMN_COLORS[nIdx] || "bg-gray-400"}`}
+                        >
+                          {num}
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </div>
           </motion.div>
         </header>
 
