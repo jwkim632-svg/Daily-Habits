@@ -22,8 +22,19 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
-// Initialize Gemini
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Initialize Gemini (Lazy initialization to prevent crash if key is missing)
+const getAiClient = () => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey === "undefined") {
+    return null;
+  }
+  try {
+    return new GoogleGenAI({ apiKey });
+  } catch (e) {
+    console.error("Gemini initialization failed:", e);
+    return null;
+  }
+};
 
 interface Task {
   id: string;
@@ -76,6 +87,13 @@ export default function App() {
   }, [tasks]);
 
   const fetchQuote = useCallback(async () => {
+    const ai = getAiClient();
+    if (!ai) {
+      setQuote("Vercel 설정에서 GEMINI_API_KEY를 등록해주세요.");
+      setAuthor("System");
+      return;
+    }
+
     setIsLoadingQuote(true);
     try {
       const response = await ai.models.generateContent({
@@ -99,6 +117,16 @@ export default function App() {
   }, []);
 
   const fetchLottoNumbers = useCallback(async () => {
+    const ai = getAiClient();
+    if (!ai) {
+      // Fallback random numbers if AI is not available
+      const fallback = Array.from({ length: 5 }, () => 
+        Array.from({ length: 6 }, () => Math.floor(Math.random() * 45) + 1).sort((a, b) => a - b)
+      );
+      setLottoSets(fallback);
+      return;
+    }
+
     setIsLoadingLotto(true);
     try {
       const response = await ai.models.generateContent({
