@@ -67,6 +67,16 @@ const COLUMN_COLORS = [
   "bg-purple-400", // 6열: 보라색
 ];
 
+const FALLBACK_QUOTES = [
+  { quote: "어제보다 나은 오늘을 만드는 것은 당신의 선택입니다.", author: "마크 트웨인" },
+  { quote: "작은 습관이 모여 위대한 인생을 만듭니다.", author: "아리스토텔레스" },
+  { quote: "시작하는 것이 반입니다. 지금 바로 시작하세요!", author: "아리스토텔레스" },
+  { quote: "성공은 매일 반복되는 작은 노력의 합계입니다.", author: "로버트 콜리어" },
+  { quote: "당신이 할 수 있다고 믿든 할 수 없다고 믿든, 당신의 믿음대로 될 것입니다.", author: "헨리 포드" },
+  { quote: "오늘의 노력이 내일의 당신을 만듭니다.", author: "엘버트 허버드" },
+  { quote: "꿈을 꾸는 것보다 더 중요한 것은 그 꿈을 향해 나아가는 것입니다.", author: "월트 디즈니" },
+];
+
 export default function App() {
   const [tasks, setTasks] = useState<Task[]>(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem("todo-tasks") : null;
@@ -89,8 +99,11 @@ export default function App() {
   const fetchQuote = useCallback(async () => {
     const ai = getAiClient();
     if (!ai) {
-      setQuote("Vercel 설정에서 GEMINI_API_KEY를 등록해주세요.");
-      setAuthor("System");
+      // AI가 없을 경우 로컬 명언 리스트에서 무작위로 선택
+      const randomIndex = Math.floor(Math.random() * FALLBACK_QUOTES.length);
+      const fallback = FALLBACK_QUOTES[randomIndex];
+      setQuote(fallback.quote);
+      setAuthor(fallback.author);
       return;
     }
 
@@ -111,6 +124,11 @@ export default function App() {
       }
     } catch (error) {
       console.error("Failed to fetch quote:", error);
+      // 에러 발생 시에도 로컬 명언으로 대체
+      const randomIndex = Math.floor(Math.random() * FALLBACK_QUOTES.length);
+      const fallback = FALLBACK_QUOTES[randomIndex];
+      setQuote(fallback.quote);
+      setAuthor(fallback.author);
     } finally {
       setIsLoadingQuote(false);
     }
@@ -156,6 +174,11 @@ export default function App() {
   useEffect(() => {
     fetchQuote();
     fetchLottoNumbers();
+
+    // Automatically update quote every 1 hour
+    const quoteInterval = setInterval(fetchQuote, 3600000);
+    
+    return () => clearInterval(quoteInterval);
   }, [fetchQuote, fetchLottoNumbers]);
 
   const addTask = (e: React.FormEvent) => {
