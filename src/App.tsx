@@ -114,20 +114,20 @@ export default function App() {
   const progress = tasks.length > 0 ? (completedCount / tasks.length) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans p-4 md:p-8">
+    <div className="min-h-screen bg-[#F8F9FA] text-[#212529] font-sans p-4 md:p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header Section */}
         <header className="mb-12 text-center">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-3 py-1 mb-4 text-xs font-semibold tracking-wider text-blue-400 uppercase bg-blue-900/30 rounded-full"
+            className="inline-flex items-center gap-2 px-3 py-1 mb-4 text-xs font-semibold tracking-wider text-blue-600 uppercase bg-blue-50 rounded-full"
           >
             <Calendar className="w-3 h-3" />
             {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
           </motion.div>
           
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-white">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-gray-900">
             Daily Habits
           </h1>
 
@@ -136,21 +136,21 @@ export default function App() {
             key={quote}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="relative p-6 bg-gray-900/50 rounded-2xl shadow-sm border border-gray-800 group"
+            className="relative p-6 bg-white rounded-2xl shadow-sm border border-gray-100 group"
           >
-            <Quote className="absolute -top-3 -left-3 w-8 h-8 text-blue-900/30 fill-blue-900/20" />
+            <Quote className="absolute -top-3 -left-3 w-8 h-8 text-blue-100 fill-blue-50" />
             <div className="relative">
-              <p className="text-lg italic text-gray-200 mb-2 leading-relaxed">
+              <p className="text-lg italic text-gray-700 mb-2 leading-relaxed">
                 "{quote}"
               </p>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="text-sm font-medium text-gray-400">
                 — {author}
               </p>
             </div>
             <button 
               onClick={fetchQuote}
               disabled={isLoadingQuote}
-              className="absolute bottom-3 right-3 p-2 text-gray-600 hover:text-blue-400 transition-colors disabled:opacity-50"
+              className="absolute bottom-3 right-3 p-2 text-gray-300 hover:text-blue-500 transition-colors disabled:opacity-50"
               title="새 명언 가져오기"
             >
               <RefreshCw className={`w-4 h-4 ${isLoadingQuote ? 'animate-spin' : ''}`} />
@@ -161,14 +161,14 @@ export default function App() {
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between items-end mb-2">
-            <span className="text-sm font-semibold text-gray-400">오늘의 달성률</span>
-            <span className="text-2xl font-bold text-blue-400">{Math.round(progress)}%</span>
+            <span className="text-sm font-semibold text-gray-500">오늘의 달성률</span>
+            <span className="text-2xl font-bold text-blue-600">{Math.round(progress)}%</span>
           </div>
-          <div className="h-3 w-full bg-gray-800 rounded-full overflow-hidden">
+          <div className="h-3 w-full bg-gray-200 rounded-full overflow-hidden">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
-              className="h-full bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+              className="h-full bg-blue-500 rounded-full"
             />
           </div>
         </div>
@@ -180,7 +180,7 @@ export default function App() {
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
             placeholder="새로운 할 일을 입력하세요..."
-            className="flex-1 px-5 py-3 bg-gray-900 border border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-white placeholder:text-gray-600"
+            className="flex-1 px-5 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
           />
           <button
             type="submit"
@@ -202,16 +202,14 @@ export default function App() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className={`group flex items-center gap-4 p-4 rounded-xl border transition-all ${
-                  task.completed 
-                    ? 'border-gray-900 bg-gray-900/30' 
-                    : 'border-gray-800 bg-gray-900/50 shadow-sm hover:border-blue-900/50'
+                className={`group flex items-center gap-4 p-4 bg-white rounded-xl border transition-all ${
+                  task.completed ? 'border-gray-100 bg-gray-50/50' : 'border-gray-200 shadow-sm hover:border-blue-200'
                 }`}
               >
                 <button
                   onClick={() => toggleTask(task.id)}
                   className={`flex-shrink-0 transition-colors ${
-                    task.completed ? 'text-blue-500' : 'text-gray-600 hover:text-blue-400'
+                    task.completed ? 'text-blue-500' : 'text-gray-300 hover:text-blue-400'
                   }`}
                 >
                   {task.completed ? (
@@ -224,13 +222,13 @@ export default function App() {
                 <div className="flex-1 flex items-center gap-3">
                   {task.category && (
                     <div className={`p-2 rounded-lg ${
-                      task.completed ? 'bg-gray-800 text-gray-600' : 'bg-blue-900/20 text-blue-400'
+                      task.completed ? 'bg-gray-100 text-gray-400' : 'bg-blue-50 text-blue-500'
                     }`}>
                       {CATEGORY_ICONS[task.category as keyof typeof CATEGORY_ICONS] || CATEGORY_ICONS.other}
                     </div>
                   )}
                   <span className={`text-lg font-medium transition-all ${
-                    task.completed ? 'text-gray-600 line-through' : 'text-gray-200'
+                    task.completed ? 'text-gray-400 line-through' : 'text-gray-700'
                   }`}>
                     {task.text}
                   </span>
@@ -238,7 +236,7 @@ export default function App() {
 
                 <button
                   onClick={() => deleteTask(task.id)}
-                  className="opacity-0 group-hover:opacity-100 p-2 text-gray-600 hover:text-red-500 transition-all"
+                  className="opacity-0 group-hover:opacity-100 p-2 text-gray-300 hover:text-red-500 transition-all"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
@@ -247,14 +245,14 @@ export default function App() {
           </AnimatePresence>
           
           {tasks.length === 0 && (
-            <div className="text-center py-12 text-gray-600">
+            <div className="text-center py-12 text-gray-400">
               <p>할 일이 없습니다. 새로운 목표를 추가해보세요!</p>
             </div>
           )}
         </div>
 
         {/* Footer Stats */}
-        <footer className="mt-12 pt-8 border-t border-gray-800 flex justify-between text-sm text-gray-600 font-medium">
+        <footer className="mt-12 pt-8 border-t border-gray-200 flex justify-between text-sm text-gray-400 font-medium">
           <p>{tasks.length}개의 할 일</p>
           <p>{completedCount}개 완료됨</p>
         </footer>
